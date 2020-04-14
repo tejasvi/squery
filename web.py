@@ -1,4 +1,5 @@
 import streamlit as st
+import pickle
 import pandas as pd
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
@@ -8,7 +9,6 @@ from itertools import chain
 from collections import Counter
 import regex as re
 
-@st.cache
 def load():
     t = pd.read_pickle("train.pkl")
     with open('freq.pkl', 'rb') as f:
@@ -156,12 +156,24 @@ def run(q, boost=[], b=1, n=10):
     return df
 
 
-df = run("powder 250 gm 150 rs", boost=["ayghd"])
-df.sort_values("scores", ascending=False)[
-    ["Product Description", "Grammage", "Final Price", "scores"]
-].head(10)
-
 if __name__ == "__main__":
     t, model, frequencies, dlist = load()
 
+    query = st.text_input('Search query', 'powder 250 gm 150 rs')
+    df = run(query, boost=["ayghd"])
+    temp=df.sort_values("scores", ascending=False)[
+        ["Product Description", "Grammage", "Final Price", "scores"]
+    ].head(10)
+    temp
+
+'''
+# Routero
+_-team Genesis_
+
+## AI-based route optimization and visualization tool for sales vehicles.
+
+In the fast-developing logistics and supply chain management fields, one of the critical problems in the decision-making system is that how to arrange a proper supply chain for a lot of destinations and suppliers and produce a detailed supply schedule under a set of constraints. Solutions to the multisource vehicle routing problem (MDVRP) help in solving this problem in case of transportation applications.
+
+### Clustered waypoints
+    '''
 
