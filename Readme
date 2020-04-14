@@ -5,7 +5,7 @@
    
  To DevelopContextual Search for an FMCG Catalogue 
  
- contextual NLP based search algorithm
+ contextual NLP based search algorithm with below components 
 
 
 web.py is a web framework for Python that is as simple as it is powerful. web.py is in the public domain; 
