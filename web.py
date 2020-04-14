@@ -159,18 +159,21 @@ def run(q, boost=[], b=1, n=10):
 if __name__ == "__main__":
     t, model, frequencies, dlist = load()
 
-    query = st.text_input('Search query', 'powder 250 gm 150 rs')
+
+    '''
+    # SQuery
+    _-team DataMinds_
+    '''
+    query = st.text_input('Enter query and press enter', 'Powder 250 gm under 150 rs')
+    n = st.number_input('Number of results', 1, 999, 10)
     boost = st.text_input('Enter space separated boosted brands (optional)', 'ayghd')
     boost = boost.split()
-    b = st.number_input('Enter boost extent', 0, 5, 1)
+    b = st.number_input('Boost extent', 0, 5, 1)
     df = run(query, boost=["ayghd"], b=b)
     temp=df.sort_values("scores", ascending=False)[
-        ["Product Description", "Grammage", "Final Price", "scores"]
-    ].head(10)
-    temp
+        ["Product Description", "Grammage", "Final Price"]
+    ].head(n)
+    temp.index = np.arange(1, len(temp) + 1)
+    st.table(temp)
 
-'''
-# SQuery
-_-team DataMinds_
-    '''
 
