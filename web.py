@@ -162,7 +162,8 @@ if __name__ == "__main__":
     query = st.text_input('Search query', 'powder 250 gm 150 rs')
     boost = st.text_input('Enter space separated boosted brands (optional)', 'ayghd')
     boost = boost.split()
-    df = run(query, boost=["ayghd"])
+    b = st.number_input('Enter boost extent', 0, 5, 1)
+    df = run(query, boost=["ayghd"], b=b)
     temp=df.sort_values("scores", ascending=False)[
         ["Product Description", "Grammage", "Final Price", "scores"]
     ].head(10)
