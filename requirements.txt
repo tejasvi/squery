@@ -4,3 +4,4 @@ pandas==1.0.3
 numpy==1.18.2
 gensim==3.6.0
 scikit_learn==0.22.2.post1
+Pickle==3.8.2
