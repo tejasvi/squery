@@ -77,13 +77,17 @@ frequencies = Counter(list(chain.from_iterable(dlist)))
 with open('freq.pkl', 'wb') as f:
     pickle.dump(frequencies, f)
 
+def autocomplete(q, freq):
+    return next((k for k in freq if k.startswith(q)), None)
+
 def run_sif(query, sentences2, model, freqs={}, a=0.001):
     total_freq = sum(freqs.values())
     embeddings = []
 
-    tokens1 = [token for token in query if token in model.wv]
+    tokens1 = [token if token in model.wv else autocomplete(token, freqs) for token in query]
     if not tokens1:
         return None
+    for i in range(tokens1.count(None)): tokens1.remove(None)
     weights1 = [a / (a + freqs.get(token, 0) / total_freq) for token in tokens1]
     embedding1 = np.zeros((len(sentences2), model.trainables.layer1_size)) + np.average(
         [model.wv[token] for token in tokens1], axis=0, weights=weights1

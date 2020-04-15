@@ -1,7 +1,6 @@
-regex==2019.12.20
 streamlit==0.57.3
-pandas==1.0.3
 numpy==1.18.2
 gensim==3.6.0
+regex==2019.12.20
+pandas==1.0.3
 scikit_learn==0.22.2.post1
-Pickle==3.8.2

@@ -41,13 +41,17 @@ def preproc(s):
         }
     ]
 
+def autocomplete(q, freq):
+    return next((k for k in freq if k.startswith(q)), None)
+
 def run_sif(query, sentences2, model, freqs={}, a=0.001):
     total_freq = sum(freqs.values())
     embeddings = []
 
-    tokens1 = [token for token in query if token in model.wv]
+    tokens1 = [token if token in model.wv else autocomplete(token, freqs) for token in query]
     if not tokens1:
         return None
+    for i in range(tokens1.count(None)): tokens1.remove(None)
     weights1 = [a / (a + freqs.get(token, 0) / total_freq) for token in tokens1]
     embedding1 = np.zeros((len(sentences2), model.trainables.layer1_size)) + np.average(
         [model.wv[token] for token in tokens1], axis=0, weights=weights1
@@ -169,11 +173,21 @@ if __name__ == "__main__":
     boost = st.text_input('Enter space separated boosted brands (optional)', 'ayghd')
     boost = boost.split()
     b = st.number_input('Boost extent', 0, 5, 1)
-    df = run(query, boost=["ayghd"], b=b)
+    df = run(query, boost=boost, b=b)
     temp=df.sort_values("scores", ascending=False)[
         ["Product Description", "Grammage", "Final Price"]
     ].head(n)
     temp.index = np.arange(1, len(temp) + 1)
     st.table(temp)
+    '''
+    ## Sample data
+    '''
+    st.button('Refresh')
+    sample = t.sample(n=10)[
+        ["Product Description", "Grammage", "Final Price"]
+    ].head(n)
+    sample.index = np.arange(1, len(sample) + 1)
+    st.table(sample)
+
 
 
