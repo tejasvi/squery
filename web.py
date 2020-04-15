@@ -167,6 +167,7 @@ if __name__ == "__main__":
     '''
     # SQuery
     _-team DataMinds_
+    Star on (Github)[https://github.com/tejasvi/squery]!
     '''
     query = st.text_input('Enter query and press enter', 'Powder 250 gm under 150 rs')
     n = st.number_input('Number of results', 1, 999, 10)
