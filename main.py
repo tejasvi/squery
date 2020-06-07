@@ -23,6 +23,7 @@ from itertools import chain
 from collections import Counter
 import regex as re
 import pickle
+from fuzzywuzzy import process
 
 t = pd.read_excel("training data.xlsx")
 
@@ -80,11 +81,17 @@ with open('freq.pkl', 'wb') as f:
 def autocomplete(q, freq):
     return next((k for k in freq if k.startswith(q)), None)
 
-def run_sif(query, sentences2, model, freqs={}, a=0.001):
+def run_sif(query, sentences2, model, freqs={}, a=0.001, fuzz=3):
     total_freq = sum(freqs.values())
     embeddings = []
 
-    tokens1 = [token if token in model.wv else autocomplete(token, freqs) for token in query]
+    tokens1 = []
+        for token in query:
+            if token in model.wv:
+                tokens1.append(token)
+            else:
+                for i in process.extract(token, model.wv.vocab.keys(), limit=fuzz):
+                    tokens1.append(i[0])
     if not tokens1:
         return None
     for i in range(tokens1.count(None)): tokens1.remove(None)
@@ -170,13 +177,13 @@ def cost(q):
     return more, c
 
 
-def run(q, boost=[], b=1, n=10):
+def run(q, boost=[], b=1, n=10, fuzz=3):
     qcheck = re.sub(r"([0-9]+(\.[0-9]+)?)", r" \1 ", q.lower()).strip().split()
     grammage = wt(qcheck)
     op, price = cost(qcheck)
 
     q += 4 * int(b) * (" " + " ".join(boost))
-    scores = run_sif(preproc(q), dlist, freqs=frequencies, model=model)
+    scores = run_sif(preproc(q), dlist, freqs=frequencies, model=model, fuzz=fuzz)
     df = t.copy()
     df["scores"] = scores
 
@@ -196,7 +203,7 @@ def run(q, boost=[], b=1, n=10):
     return df
 
 
-df = run("powder 250 gm 150 rs", boost=["ayghd"])
+df = run("powder 250 gm 150 rs", boost=["ayghd"], fuzz=3)
 df.sort_values("scores", ascending=False)[
     ["Product Description", "Grammage", "Final Price", "scores"]
 ].head(10)

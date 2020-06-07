@@ -8,6 +8,7 @@ from gensim.utils import simple_preprocess
 from itertools import chain
 from collections import Counter
 import regex as re
+from fuzzywuzzy import process
 
 def load():
     t = pd.read_pickle("train.pkl")
@@ -44,11 +45,17 @@ def preproc(s):
 def autocomplete(q, freq):
     return next((k for k in freq if k.startswith(q)), None)
 
-def run_sif(query, sentences2, model, freqs={}, a=0.001):
+def run_sif(query, sentences2, model, freqs={}, a=0.001, fuzz=3):
     total_freq = sum(freqs.values())
     embeddings = []
 
-    tokens1 = [token if token in model.wv else autocomplete(token, freqs) for token in query]
+    tokens1 = []
+    for token in query:
+        if token in model.wv:
+            tokens1.append(token)
+        else:
+            for i in process.extract(token, model.wv.vocab.keys(), limit=fuzz):
+                tokens1.append(i[0])
     if not tokens1:
         return None
     for i in range(tokens1.count(None)): tokens1.remove(None)
@@ -134,13 +141,13 @@ def cost(q):
     return more, c
 
 
-def run(q, boost=[], b=1, n=10):
+def run(q, boost=[], b=1, n=10, fuzz=3):
     qcheck = re.sub(r"([0-9]+(\.[0-9]+)?)", r" \1 ", q.lower()).strip().split()
     grammage = wt(qcheck)
     op, price = cost(qcheck)
 
     q += 4 * int(b) * (" " + " ".join(boost))
-    scores = run_sif(preproc(q), dlist, freqs=frequencies, model=model)
+    scores = run_sif(preproc(q), dlist, freqs=frequencies, model=model, fuzz=fuzz)
     df = t.copy()
     df["scores"] = scores
 
@@ -167,14 +174,16 @@ if __name__ == "__main__":
     '''
     # SQuery
     _-team DataMinds_
-    Star on (Github)[https://github.com/tejasvi/squery]!
     '''
     query = st.text_input('Enter query and press enter', 'Powder 250 gm under 150 rs')
     n = st.number_input('Number of results', 1, 999, 10)
     boost = st.text_input('Enter space separated boosted brands (optional)', 'ayghd')
     boost = boost.split()
-    b = st.number_input('Boost extent', 0, 5, 1)
-    df = run(query, boost=boost, b=b)
+    b = st.number_input('Boost extent', 0, 5, 0)
+    fuzz = st.number_input('Fuzzy match extent', 0, 10, 4)
+    thresh = st.number_input('Criteria rigidity', 0, 10, 9)
+    df = run(query, boost=boost, b=b, fuzz=fuzz)
+    st.markdown(f'#### Suggested results: Top {(df["scores"]/df["scores"].max() > (0.99 + thresh/1000)).sum()} rows')
     temp=df.sort_values("scores", ascending=False)[
         ["Product Description", "Grammage", "Final Price"]
     ].head(n)
